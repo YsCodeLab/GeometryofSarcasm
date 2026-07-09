@@ -25,13 +25,13 @@ PAD_ID = model.tokenizer.pad_token_id
 # GRAB classes
 classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
 # GRAB sentiment dir
-#sentiment_dir = pickle.load(open("sentiment_dir.pkl", "rb"))
+sentiment_dir = pickle.load(open("artifacts/sentiment_dir.pkl", "rb"))
 # make shift before sentiment is ready
-all_acts = {}
-for name, texts in proj_sets.items():
-    print(f"extracting {name} ...", flush=True)
-    all_acts[name] = get_resid_acts(texts)
-pickle.dump(all_acts, open("phase1_acts.pkl", "wb"))
+#all_acts = {}
+#for name, texts in proj_sets.items():
+#    print(f"extracting {name} ...", flush=True)
+#    all_acts[name] = get_resid_acts(texts)
+#pickle.dump(all_acts, open("phase1_acts.pkl", "wb"))
 #---------------------------------------------------------------------------
 
 
@@ -90,6 +90,44 @@ for name, texts in proj_sets.items():
         [(a[l] @ sentiment_dir[l]).numpy() for l in range(N_LAYERS)]
     )
     del a
-    
 
 
+pickle.dump(all_projs, open("artifacts/phase1_projections.pkl", "wb"))    
+
+#-----Little plot class-------------
+def plot_class(ax, name, color, label):
+    m = all_projs[name].mean(axis=1)
+    sem = all_projs[name].std(axis=1) / np.sqrt(all_projs[name].shape[1])
+    ax.plot(m, color=color, linewidth=2, label=label)
+    ax.fill_between(range(N_LAYERS), m - 2*sem, m + 2*sem, color=color, alpha=0.15)
+
+#-----plotting how sentiment evolve over time
+fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+
+ax = axes[0]
+plot_class(ax, "sarcastic_surfpos",    "red",   "Sarcastic (surface +)")
+plot_class(ax, "paired_sincere_pos",   "green", "Paired rephrase (+)")
+plot_class(ax, "baseline_sincere_pos", "blue",  "Baseline sincere (+)")
+plot_class(ax, "baseline_sincere_neg", "gray",  "Baseline sincere (−)  [anchor]")
+ax.set_xlabel("Layer"); ax.set_ylabel("Projection onto sentiment direction")
+ax.set_title("Surface-positive: literal vs intended"); ax.legend(); ax.grid(alpha=0.3)
+
+ax = axes[1]
+plot_class(ax, "sarcastic_surfneg",    "orange", "Sarcastic (surface −)")
+plot_class(ax, "paired_sincere_neg",   "purple", "Paired rephrase (−)")
+plot_class(ax, "baseline_sincere_neg", "brown",  "Baseline sincere (−)")
+plot_class(ax, "baseline_sincere_pos", "gray",   "Baseline sincere (+)  [anchor]")
+ax.set_xlabel("Layer"); ax.set_title("Surface-negative: control"); ax.legend(); ax.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.savefig("phase1_headline.png", dpi=150)
+
+pos_anchor = all_projs["baseline_sincere_pos"].mean(axis=1)
+neg_anchor = all_projs["baseline_sincere_neg"].mean(axis=1)
+sarc       = all_projs["sarcastic_surfpos"].mean(axis=1)
+resolution = (pos_anchor - sarc) / (pos_anchor - neg_anchor)
+
+print("\nResolution score (0 = literal/surface, 1 = intended/flipped):")
+for l in range(0, N_LAYERS, 3):
+    print(f"  layer {l:2d}: {resolution[l]:+.2f}")
+pickle.dump(resolution, open("artifacts/phase1_resolution.pkl", "wb"))
