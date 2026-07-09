@@ -3,13 +3,13 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from transformer_lens import HookedTransformer
-
+from common_config import *
 
 # --------------------------SETUP-------------------------------------------
 device = "cuda"
 
 # MATCH: use the same model 
-model = HookedTransformer.from_pretrained("gemma-2-2b", device=device)
+model = HookedTransformer.from_pretrained(MODEL_NAME, device=device)
 model.eval()
 # MATCH: need to match the last step
 N_DIRECTION_TRAIN = 300  #
@@ -24,7 +24,7 @@ PAD_ID = model.tokenizer.pad_token_id
 #------------------------------INPUT-----------------------------------------
 # GRAB classes
 #classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
-classes = pickle.load(open("strong_classes.pkl", "rb"))
+classes = pickle.load(open(CLASSES, "rb"))
 
 # GRAB sentiment dir
 #sentiment_dir = pickle.load(open("artifacts-2B/sentiment_dir.pkl", "rb"))
@@ -96,7 +96,7 @@ for name, texts in proj_sets.items():
     del a
 
 
-pickle.dump(all_projs, open("artifacts-2B/phase1_projections_strong.pkl", "wb"))    
+pickle.dump(all_projs, open("artifacts-9B/phase1_projections_strong.pkl", "wb"))    
 
 #-----Little plot class-------------
 def plot_class(ax, name, color, label):
@@ -134,6 +134,6 @@ resolution = (pos_anchor - sarc) / (pos_anchor - neg_anchor)
 print("\nResolution score (0 = literal/surface, 1 = intended/flipped):")
 for l in range(0, N_LAYERS, 3):
     print(f"  layer {l:2d}: {resolution[l]:+.2f}")
-pickle.dump(resolution, open("artifacts-2B/phase1_resolution_strong.pkl", "wb"))
+pickle.dump(resolution, open("artifacts-9B/phase1_resolution_strong.pkl", "wb"))
 
 

@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 
 #constant
-artifacts_folder="artifacts-2B"
+artifacts_folder="artifacts_9B"
 
 
 classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
@@ -37,7 +37,7 @@ for i in range(3):
 import pickle
 from scipy.stats import wilcoxon
 
-all_projs = pickle.load(open("artifacts-2B/phase1_projections.pkl", "rb"))
+all_projs = pickle.load(open("artifacts_9B/phase1_projections.pkl", "rb"))
 
 sarc = all_projs["sarcastic_surfpos"]      # [layers, n]
 intent = all_projs["paired_sincere_pos"]   # same order = same pairs, since both built from pairs_df in order
