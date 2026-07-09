@@ -22,7 +22,6 @@ pairs_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())]
 # GRAB sincere text
 baseline_df = df[df['sarcastic'] == 0]
 
-# CREATE the matrix BUILD categories, remove neutral tweets between 0.5 and 3
 classes = {
     "sarcastic_surfpos":    pairs_df[pairs_df['tweet_sentiment'] > 0.5]['tweet'].tolist(),
     "paired_sincere_pos":   pairs_df[pairs_df['tweet_sentiment'] > 0.5]['rephrase'].tolist(),
@@ -41,4 +40,7 @@ for category, texts in classes.items():
 # PICKLE results
 import pickle
 pickle.dump(classes, open("classes_separation0.5.pkl", "wb"))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 43920dd2c1f8381a77b25f3aff23eba4dc1d3e0c
