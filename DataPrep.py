@@ -14,10 +14,10 @@ def surface(t):
 # grabbing Sarcastic Texts
 sarc_texts = df[df['sarcastic'] == 1]['tweet'].tolist()
 
-# Producing the Paired Control (Topic-Matched Sincere) of the sarcastic dataset
+# Control group #1 Paired Control (rephrasing sarcastic text)
 paired_nonsarc_texts = df[df['sarcastic'] == 1]['rephrase'].dropna().tolist()
 
-# The Baseline Control (Naturally Sincere)
+# Control group #2  Control (Naturally Sincere)
 baseline_nonsarc_texts = df[df['sarcastic'] == 0]['tweet'].dropna().tolist()
 
 # creating the matrix
