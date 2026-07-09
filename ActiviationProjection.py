@@ -23,7 +23,7 @@ PAD_ID = model.tokenizer.pad_token_id
 
 #------------------------------INPUT-----------------------------------------
 # GRAB classes
-classes = pickle.load(open("classes.pkl", "rb"))
+classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
 # GRAB sentiment dir
 #sentiment_dir = pickle.load(open("sentiment_dir.pkl", "rb"))
 # make shift before sentiment is ready
@@ -65,7 +65,6 @@ proj_sets = {
     "baseline_sincere_neg": classes["baseline_sincere_neg"][N_DIRECTION_TRAIN:],
 }
 
-# 
 
 
 # sanity checking printout 

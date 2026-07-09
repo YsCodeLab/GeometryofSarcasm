@@ -22,16 +22,16 @@ pairs_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())]
 # GRAB sincere text
 baseline_df = df[df['sarcastic'] == 0]
 
-# BUILD categories, remove neutral tweets between 0.3 and 3
+# BUILD categories, remove neutral tweets between 0.5 and 3
 classes = {
-    "sarcastic_surfpos":    pairs_df[pairs_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
-    "paired_sincere_pos":   pairs_df[pairs_df['tweet_sentiment'] > 0.3]['rephrase'].tolist(),
+    "sarcastic_surfpos":    pairs_df[pairs_df['tweet_sentiment'] > 0.5]['tweet'].tolist(),
+    "paired_sincere_pos":   pairs_df[pairs_df['tweet_sentiment'] > 0.5]['rephrase'].tolist(),
     
-    "sarcastic_surfneg":    pairs_df[pairs_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
-    "paired_sincere_neg":   pairs_df[pairs_df['tweet_sentiment'] < -0.3]['rephrase'].tolist(),
+    "sarcastic_surfneg":    pairs_df[pairs_df['tweet_sentiment'] < -0.5]['tweet'].tolist(),
+    "paired_sincere_neg":   pairs_df[pairs_df['tweet_sentiment'] < -0.5]['rephrase'].tolist(),
 
-    "baseline_sincere_pos": baseline_df[baseline_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
-    "baseline_sincere_neg": baseline_df[baseline_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
+    "baseline_sincere_pos": baseline_df[baseline_df['tweet_sentiment'] > 0.5]['tweet'].tolist(),
+    "baseline_sincere_neg": baseline_df[baseline_df['tweet_sentiment'] < -0.5]['tweet'].tolist(),
 }
 # PRINT for check
 print("--- Extracted Dataset Counts ---")
@@ -40,4 +40,4 @@ for category, texts in classes.items():
 
 # PICKLE results
 import pickle
-pickle.dump(classes, open("classes.pkl", "wb"))
+pickle.dump(classes, open("classes_separation0.5.pkl", "wb"))
