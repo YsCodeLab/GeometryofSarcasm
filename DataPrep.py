@@ -1,40 +1,44 @@
+
+
+import os
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# input from ISARCASM
-df = pd.read_csv("./iSarcasmEval/train/train.csv")
+# INPUT from ISARCASM
+ROOT = os.getcwd()
+csv_path = os.path.join(ROOT, "iSarcasmEval", "train", "train.En.csv")
+
+df = pd.read_csv(csv_path)
 df = df.dropna(subset=["tweet", "sarcastic"])
 
+# CALC sentiment score for each tweet from the ISARCASM dataset
 analyzer = SentimentIntensityAnalyzer()
-
-# use vader sentiment to calculate sentiment score for each tweet from the ISARCASM dataset
 def surface(t): 
     return analyzer.polarity_scores(str(t))["compound"]
+df['tweet_sentiment'] = df['tweet'].apply(surface)
 
-# grabbing Sarcastic Texts
-sarc_texts = df[df['sarcastic'] == 1]['tweet'].tolist()
+# DROP sarcastic entreis with no rephrasing 
+pairs_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())]
+# GRAB sincere text
+baseline_df = df[df['sarcastic'] == 0]
 
-# Control group #1 Paired Control (rephrasing sarcastic text)
-paired_nonsarc_texts = df[df['sarcastic'] == 1]['rephrase'].dropna().tolist()
 
-# Control group #2  Control (Naturally Sincere)
-baseline_nonsarc_texts = df[df['sarcastic'] == 0]['tweet'].dropna().tolist()
-
-# creating the matrix
+# CREATE the matrix BUILD categories, remove neutral tweets between 0.3 and 3
 classes = {
-    # Sarcastic
-    "sarcastic_surfpos":       [t for t in sarc_texts if surface(t) > 0.3],
-    "sarcastic_surfneg":       [t for t in sarc_texts if surface(t) < -0.3],
+    "sarcastic_surfpos":    pairs_df[pairs_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
+    "paired_sincere_pos":   pairs_df[pairs_df['tweet_sentiment'] > 0.3]['rephrase'].tolist(),
     
-    # Paired Sincere (The perfect mathematical control)
-    "paired_sincere_pos":      [t for t in paired_nonsarc_texts if surface(t) > 0.3],
-    "paired_sincere_neg":      [t for t in paired_nonsarc_texts if surface(t) < -0.3],
-    
-    # Baseline Sincere (The natural distribution)
-    "baseline_sincere_pos":    [t for t in baseline_nonsarc_texts if surface(t) > 0.3],
-    "baseline_sincere_neg":    [t for t in baseline_nonsarc_texts if surface(t) < -0.3],
-}
+    "sarcastic_surfneg":    pairs_df[pairs_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
+    "paired_sincere_neg":   pairs_df[pairs_df['tweet_sentiment'] < -0.3]['rephrase'].tolist(),
 
-# Display counts
-for k, v in classes.items(): 
-    print(f"{k}: {len(v)}")
+    "baseline_sincere_pos": baseline_df[baseline_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
+    "baseline_sincere_neg": baseline_df[baseline_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
+}
+# PRINT for check
+print("--- Extracted Dataset Counts ---")
+for category, texts in classes.items():
+    print(f"{category}: {len(texts)}")
+
+# PICKLE results
+import pickle
+pickle.dump(classes, open("classes.pkl", "wb"))
