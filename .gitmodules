@@ -1,0 +1,3 @@
+[submodule "iSarcasmEval"]
+	path = iSarcasmEval
+	url = git@github.com:iabufarha/iSarcasmEval.git
