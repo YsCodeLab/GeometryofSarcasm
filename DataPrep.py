@@ -10,13 +10,12 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 # USE the ISARCASM test and train csv files
 df = pd.read_csv("./iSarcasmEval/train/train.csv")
 
-# Drop all tweets that have 
+# print empty columns
 df.isna().sum()
 
-tweet_ids = df[subset=["tweet", "sarcastic"]].dropna()
+# Drop all entries that have empty elements
+df = df.dropna(subset=["tweet", "sarcastic"])
 
-
-df = df.dropna(subset=["tweet"])
 
 # VaderSentiment Example
 # --- examples -------
@@ -38,10 +37,14 @@ df = df.dropna(subset=["tweet"])
 #             "Not bad at all"  # Capitalized negation
 #             ]
 
+sentences = df['tweet']
+compls = []
 analyzer = SentimentIntensityAnalyzer()
 for sentence in sentences:
     vs = analyzer.polarity_scores(sentence)
-    print("{:-<65} {}".format(sentence, str(vs)))
+	compls.append(vs['compound']) 
+   print("{:-<65} {}".format(sentence, str(vs)))
+df['compound'] = compls
 
 #positive sentiment: compound score >= 0.05
 #neutral sentiment: (compound score > -0.05) and (compound score < 0.05)
@@ -52,7 +55,4 @@ df['positive'] = df['compound'] >= 0.05
 df['c'] = np.where(df['a'].map(len) > df['b'].map(len), df['a'].map(len), df['b'].map(len))
 
 df['pos'] = (df['compound'] >= 0.05).astype(int)
-
-
-
-
+df['neg'] = (df['compound'] <= -0.05.astype(int)
