@@ -1,8 +1,10 @@
 import pandas as pd
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import os
 
 # input from ISARCASM
-df = pd.read_csv("./iSarcasmEval/train/train.csv")
+ROOT=os.getcwd()
+df = pd.read_csv(f"{ROOT}/iSarcasmEval/train/train.En.csv")
 df = df.dropna(subset=["tweet", "sarcastic"])
 
 analyzer = SentimentIntensityAnalyzer()
@@ -11,29 +13,38 @@ analyzer = SentimentIntensityAnalyzer()
 def surface(t): 
     return analyzer.polarity_scores(str(t))["compound"]
 
-# grabbing Sarcastic Texts
-sarc_texts = df[df['sarcastic'] == 1]['tweet'].tolist()
+df['tweet_sentiment'] = df['tweet'].apply(surface)
 
-# Producing the Paired Control (Topic-Matched Sincere) of the sarcastic dataset
-paired_nonsarc_texts = df[df['sarcastic'] == 1]['rephrase'].dropna().tolist()
+pairs_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())]
+baseline_df = df[df['sarcastic'] == 0]
 
-# The Baseline Control (Naturally Sincere)
-baseline_nonsarc_texts = df[df['sarcastic'] == 0]['tweet'].dropna().tolist()
-
-# creating the matrix
+# 
 classes = {
-    # Sarcastic
-    "sarcastic_surfpos":       [t for t in sarc_texts if surface(t) > 0.3],
-    "sarcastic_surfneg":       [t for t in sarc_texts if surface(t) < -0.3],
+    "sarcastic_surfpos":    pairs_df[pairs_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
+    "paired_sincere_pos":   pairs_df[pairs_df['tweet_sentiment'] > 0.3]['rephrase'].tolist(),
     
-    # Paired Sincere (The perfect mathematical control)
-    "paired_sincere_pos":      [t for t in paired_nonsarc_texts if surface(t) > 0.3],
-    "paired_sincere_neg":      [t for t in paired_nonsarc_texts if surface(t) < -0.3],
-    
-    # Baseline Sincere (The natural distribution)
-    "baseline_sincere_pos":    [t for t in baseline_nonsarc_texts if surface(t) > 0.3],
-    "baseline_sincere_neg":    [t for t in baseline_nonsarc_texts if surface(t) < -0.3],
+    "sarcastic_surfneg":    pairs_df[pairs_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
+    "paired_sincere_neg":   pairs_df[pairs_df['tweet_sentiment'] < -0.3]['rephrase'].tolist(),
+
+    "baseline_sincere_pos": baseline_df[baseline_df['tweet_sentiment'] > 0.3]['tweet'].tolist(),
+    "baseline_sincere_neg": baseline_df[baseline_df['tweet_sentiment'] < -0.3]['tweet'].tolist(),
 }
+
+
+
+# ISOLATE only rows that have BOTH the sarcastic tweet and the rephrase
+paired_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())].copy()
+
+# FILTER strictly based on the SARCASTIC text's surface sentiment
+paired_df['sarc_score'] = paired_df['tweet'].apply(surface)
+
+# FILTER remove neutral sentiments between -0.3 and 0.3
+perfect_pos_pairs = paired_df[paired_df['sarc_score'] > 0.3]
+perfect_neg_pairs = paired_df[paired_df['sarc_score'] < -0.3]
+
+# Printing surface counts
+print(f"Perfect Surface-Positive Pairs: {len(perfect_pos_pairs)}")
+print(f"Perfect Surface-Negative Pairs: {len(perfect_neg_pairs)}")
 
 # Display counts
 for k, v in classes.items(): 
