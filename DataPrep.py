@@ -1,36 +1,40 @@
 import pandas as pd
-import numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+# input from ISARCASM
 df = pd.read_csv("./iSarcasmEval/train/train.csv")
-
-df.isna().sum()
 df = df.dropna(subset=["tweet", "sarcastic"])
 
 analyzer = SentimentIntensityAnalyzer()
 
-# Calculate only the compound score directly into the dataframe
-df['compound'] = df['tweet'].apply(lambda x: analyzer.polarity_scores(x)['compound'])
+# use vader sentiment to calculate sentiment score for each tweet from the ISARCASM dataset
+def surface(t): 
+    return analyzer.polarity_scores(str(t))["compound"]
 
-# Keep only strong negative (<= -0.2) and strong positive (>= 0.2)
-df = df[(df['compound'] <= -0.2) | (df['compound'] >= 0.2)]
+# grabbing Sarcastic Texts
+sarc_texts = df[df['sarcastic'] == 1]['tweet'].tolist()
 
-print(df.head())
+# Producing the Paired Control (Topic-Matched Sincere) of the sarcastic dataset
+paired_nonsarc_texts = df[df['sarcastic'] == 1]['rephrase'].dropna().tolist()
 
+# The Baseline Control (Naturally Sincere)
+baseline_nonsarc_texts = df[df['sarcastic'] == 0]['tweet'].dropna().tolist()
 
-#sentences = df['tweet']
-#compls = []
+# creating the matrix
+classes = {
+    # Sarcastic
+    "sarcastic_surfpos":       [t for t in sarc_texts if surface(t) > 0.3],
+    "sarcastic_surfneg":       [t for t in sarc_texts if surface(t) < -0.3],
+    
+    # Paired Sincere (The perfect mathematical control)
+    "paired_sincere_pos":      [t for t in paired_nonsarc_texts if surface(t) > 0.3],
+    "paired_sincere_neg":      [t for t in paired_nonsarc_texts if surface(t) < -0.3],
+    
+    # Baseline Sincere (The natural distribution)
+    "baseline_sincere_pos":    [t for t in baseline_nonsarc_texts if surface(t) > 0.3],
+    "baseline_sincere_neg":    [t for t in baseline_nonsarc_texts if surface(t) < -0.3],
+}
 
-#for sentence in sentences:
-#    vs = analyzer.polarity_scores(sentence)
-#    compls.append(vs['compound'])
-#    print("{:-<65} {}".format(sentence, str(vs)))
-#
-#df['compound'] = compls
-#
-#df['positive'] = df['compound'] >= 0.05
-#
-## df['c'] = np.where(df['a'].map(len) > df['b'].map(len), df['a'].map(len), df['b'].map(len)) # Removed: 'a' and 'b' are undefined
-#
-#df['pos'] = (df['compound'] >= 0.05).astype(int)
-#df['neg'] = (df['compound'] <= -0.05).astype(int)
+# Display counts
+for k, v in classes.items(): 
+    print(f"{k}: {len(v)}")
