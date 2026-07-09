@@ -23,9 +23,13 @@ PAD_ID = model.tokenizer.pad_token_id
 
 #------------------------------INPUT-----------------------------------------
 # GRAB classes
-classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
+#classes = pickle.load(open("classes_separation0.5.pkl", "rb"))
+classes = pickle.load(open("strong_classes.pkl", "rb"))
+
 # GRAB sentiment dir
-sentiment_dir = pickle.load(open("artifacts/sentiment_dir.pkl", "rb"))
+#sentiment_dir = pickle.load(open("artifacts-2B/sentiment_dir.pkl", "rb"))
+sentiment_dir = pickle.load(open("sentiment_dir_strong.pkl", "rb"))
+
 # make shift before sentiment is ready
 #all_acts = {}
 #for name, texts in proj_sets.items():
@@ -92,7 +96,7 @@ for name, texts in proj_sets.items():
     del a
 
 
-pickle.dump(all_projs, open("artifacts/phase1_projections.pkl", "wb"))    
+pickle.dump(all_projs, open("artifacts-2B/phase1_projections_strong.pkl", "wb"))    
 
 #-----Little plot class-------------
 def plot_class(ax, name, color, label):
@@ -120,7 +124,7 @@ plot_class(ax, "baseline_sincere_pos", "gray",   "Baseline sincere (+)  [anchor]
 ax.set_xlabel("Layer"); ax.set_title("Surface-negative: control"); ax.legend(); ax.grid(alpha=0.3)
 
 plt.tight_layout()
-plt.savefig("phase1_headline.png", dpi=150)
+plt.savefig("phase1_headline_strong.png", dpi=150)
 
 pos_anchor = all_projs["baseline_sincere_pos"].mean(axis=1)
 neg_anchor = all_projs["baseline_sincere_neg"].mean(axis=1)
@@ -130,4 +134,6 @@ resolution = (pos_anchor - sarc) / (pos_anchor - neg_anchor)
 print("\nResolution score (0 = literal/surface, 1 = intended/flipped):")
 for l in range(0, N_LAYERS, 3):
     print(f"  layer {l:2d}: {resolution[l]:+.2f}")
-pickle.dump(resolution, open("artifacts/phase1_resolution.pkl", "wb"))
+pickle.dump(resolution, open("artifacts-2B/phase1_resolution_strong.pkl", "wb"))
+
+
