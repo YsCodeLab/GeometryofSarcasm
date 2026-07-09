@@ -23,7 +23,8 @@ pairs_df = df[(df['sarcastic'] == 1) & (df['rephrase'].notna())]
 baseline_df = df[df['sarcastic'] == 0]
 
 <<<<<<< HEAD
-# BUILD categories, remove neutral tweets between 0.5 and 3
+
+# CREATE the matrix BUILD categories, remove neutral tweets between 0.5 and 3
 =======
 # Control group #1 Paired Control (rephrasing sarcastic text)
 paired_nonsarc_texts = df[df['sarcastic'] == 1]['rephrase'].dropna().tolist()
